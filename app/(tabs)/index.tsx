@@ -131,10 +131,7 @@ export default function HomeScreen() {
 
   const handleTrackingPress = (trip: Trip) => {
     setSelectedTripId(trip.id);
-    Alert.alert(
-      "Live Tracking",
-      `Tracking ${trip.driverName}'s vehicle (${trip.vehicleNumber})\n\nCurrent ETA: ~${Math.floor(Math.random() * 20) + 5} minutes`
-    );
+    router.push(`/tracking?tripId=${trip.id}`);
   };
 
   const formatDate = (date: Date) => {
