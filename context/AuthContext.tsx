@@ -53,15 +53,19 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   }, []);
 
   // ---- Loads the Firestore user profile ----
-  const loadUserProfile = async (uid: string) => {
+  const loadUserProfile = async (uid: string, firebaseUser?: FirebaseUser | null) => {
+    if (!isMountedRef.current) return;
+
     try {
       console.log("Loading user profile for:", uid);
       const userRef = doc(db, "users", uid);
       const userDoc = await getDoc(userRef);
 
+      if (!isMountedRef.current) return;
+
       if (userDoc.exists()) {
         const data = userDoc.data();
-        setUserProfile({
+        const profileData: UserProfile = {
           uid,
           email: data.email,
           name: data.name,
@@ -71,14 +75,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           hasCompletedOnboarding: data.hasCompletedOnboarding || false,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
-        });
+        };
+
+        if (isMountedRef.current) {
+          setUserProfile(profileData);
+        }
         console.log("User profile loaded:", data.role);
       } else {
         console.log("User profile not found, creating...");
 
         // ⚡ CREATE A NEW PROFILE AUTOMATICALLY
         const newProfile = {
-          email: user?.email || "",
+          email: firebaseUser?.email || "",
           name: "",
           phone: "",
           role: "employee",
@@ -90,12 +98,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
         await setDoc(userRef, newProfile);
 
+        if (!isMountedRef.current) return;
+
         // Load again after creating
-        setUserProfile({ uid, ...newProfile });
+        if (isMountedRef.current) {
+          setUserProfile({ uid, ...newProfile });
+        }
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
-      setUserProfile(null);
+      if (isMountedRef.current) {
+        setUserProfile(null);
+      }
     }
   };
 
