@@ -307,26 +307,45 @@ export default function ScheduleScreen() {
                     .filter((s) => s.day === day)
                     .map((slot, index) => (
                       <View key={index} style={styles.slotItem}>
-                        <View style={styles.slotTime}>
-                          <Clock size={14} color={Colors.light.textSecondary} />
-                          <Text style={styles.slotText}>{slot.pickupTime}</Text>
-                        </View>
-                        <View style={styles.slotLocation}>
-                          {slot.pickupLocation === "home" ? (
-                            <Home
+                        <View style={styles.slotDetails}>
+                          <View style={styles.slotTime}>
+                            <Clock
                               size={14}
                               color={Colors.light.textSecondary}
                             />
-                          ) : (
-                            <Building
-                              size={14}
-                              color={Colors.light.textSecondary}
-                            />
-                          )}
-                          <Text style={styles.slotText}>
-                            {slot.pickupLocation === "home" ? "Home" : "Office"}
-                          </Text>
+                            <Text style={styles.slotText}>
+                              {slot.pickupTime} - {slot.dropTime}
+                            </Text>
+                          </View>
+                          <View style={styles.slotLocation}>
+                            {slot.pickupLocation === "home" ? (
+                              <Home
+                                size={14}
+                                color={Colors.light.textSecondary}
+                              />
+                            ) : (
+                              <Building
+                                size={14}
+                                color={Colors.light.textSecondary}
+                              />
+                            )}
+                            <Text style={styles.slotText}>
+                              {slot.pickupLocation === "home"
+                                ? "Home"
+                                : "Office"}{" "}
+                              →{" "}
+                              {slot.dropLocation === "home"
+                                ? "Home"
+                                : "Office"}
+                            </Text>
+                          </View>
                         </View>
+                        <TouchableOpacity
+                          onPress={() => handleRemoveSlot(index)}
+                          style={styles.removeSlotButton}
+                        >
+                          <X size={14} color={Colors.light.error} />
+                        </TouchableOpacity>
                       </View>
                     ))}
                 </View>
