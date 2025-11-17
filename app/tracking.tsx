@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Platform } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,19 +6,36 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapView, { Marker, Polyline } from "react-native-maps";
 import {
   ChevronLeft,
   Phone,
   Navigation,
   Clock,
   AlertCircle,
+  Map,
 } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
+
+// Conditionally import MapView only on native platforms
+let MapView: any = null;
+let Marker: any = null;
+let Polyline: any = null;
+
+if (Platform.OS !== "web") {
+  try {
+    const maps = require("react-native-maps");
+    MapView = maps.default;
+    Marker = maps.Marker;
+    Polyline = maps.Polyline;
+  } catch (e) {
+    console.warn("react-native-maps not available");
+  }
+}
 
 // Mock trip data for testing
 const mockTrip: Trip = {
