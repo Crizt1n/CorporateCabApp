@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,12 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Send, Bot } from "lucide-react-native";
+import { Send, Bot, Loader } from "lucide-react-native";
 import { useRorkAgent, createRorkTool } from "@rork-ai/toolkit-sdk";
 import { z } from "zod";
+import { useAuth } from "@/context/AuthContext";
 import Colors from "@/constants/colors";
 
 interface Message {
