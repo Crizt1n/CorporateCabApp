@@ -139,7 +139,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const signUp = useCallback(
     async (email: string, password: string, role: UserRole = "employee") => {
       console.log("Signing up user:", email);
-      setLoading(true);
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
 
       try {
         const result = await createUserWithEmailAndPassword(
@@ -166,7 +168,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         console.error("Sign up error:", error);
         throw error;
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     },
     []
