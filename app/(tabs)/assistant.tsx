@@ -261,8 +261,29 @@ export default function AssistantScreen() {
                             color={Colors.light.primary}
                           />
                           <Text style={styles.toolText}>
-                            Fetching {part.toolName}...
+                            {part.toolName
+                              .replace(/([A-Z])/g, " $1")
+                              .toLowerCase()}
+                            ...
                           </Text>
+                        </View>
+                      );
+                    }
+
+                    if (part.state === "result") {
+                      return (
+                        <View key={`${m.id}-${i}`} style={styles.toolResult}>
+                          <Text style={styles.toolResultTitle}>
+                            {part.toolName
+                              .replace(/([A-Z])/g, " $1")
+                              .toLowerCase()
+                              .trim()}
+                          </Text>
+                          {typeof part.result === "object" && (
+                            <Text style={styles.toolResultText}>
+                              {JSON.stringify(part.result, null, 2)}
+                            </Text>
+                          )}
                         </View>
                       );
                     }
