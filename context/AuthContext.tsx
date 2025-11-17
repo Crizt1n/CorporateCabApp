@@ -34,10 +34,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
       if (firebaseUser && !isLoadingProfile.current) {
         isLoadingProfile.current = true;
-        await loadUserProfile(firebaseUser.uid);
+        await loadUserProfile(firebaseUser.uid, firebaseUser);
         isLoadingProfile.current = false;
       } else {
-        setUserProfile(null);
+        if (isMountedRef.current) {
+          setUserProfile(null);
+        }
       }
 
       if (isMountedRef.current) {
