@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,12 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Send, Bot } from "lucide-react-native";
+import { Send, Bot, Loader } from "lucide-react-native";
 import { useRorkAgent, createRorkTool } from "@rork-ai/toolkit-sdk";
 import { z } from "zod";
+import { useAuth } from "@/context/AuthContext";
 import Colors from "@/constants/colors";
 
 interface Message {
@@ -23,35 +25,123 @@ interface Message {
   content: string;
 }
 
+interface TripData {
+  id: string;
+  date: string;
+  time: string;
+  pickupLocation: string;
+  dropLocation: string;
+  driver: string;
+  vehicle: string;
+  status: string;
+}
+
 export default function AssistantScreen() {
   const insets = useSafeAreaInsets();
   const [input, setInput] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { userProfile } = useAuth();
+
+  // Mock trip data
+  const upcomingTrips: TripData[] = [
+    {
+      id: "1",
+      date: "Tomorrow",
+      time: "9:00 AM",
+      pickupLocation: "123 Home Street, Delhi",
+      dropLocation: "Tech Park, Gurgaon",
+      driver: "Raj Kumar",
+      vehicle: "DL 1C AB 1234",
+      status: "scheduled",
+    },
+    {
+      id: "2",
+      date: "Dec 25",
+      time: "5:00 PM",
+      pickupLocation: "Tech Park, Gurgaon",
+      dropLocation: "123 Home Street, Delhi",
+      driver: "Priya Singh",
+      vehicle: "DL 1C CD 5678",
+      status: "scheduled",
+    },
+  ];
 
   const { messages, sendMessage } = useRorkAgent({
     tools: {
       getTripInfo: createRorkTool({
-        description: "Get information about upcoming trips",
+        description:
+          "Get detailed information about upcoming trips and schedules",
         zodSchema: z.object({
-          query: z.string().describe("Query about trips"),
+          timeframe: z
+            .string()
+            .describe("Timeframe like 'tomorrow', 'next week', 'today'"),
         }),
         execute(input) {
+          const relevantTrips = upcomingTrips.filter((trip) => {
+            const lower = input.timeframe.toLowerCase();
+            if (lower.includes("tomorrow")) return trip.date === "Tomorrow";
+            if (lower.includes("next") || lower.includes("week"))
+              return true;
+            if (lower.includes("today")) return trip.date === "Today";
+            return true;
+          });
+
           return {
-            nextTrip: "Tomorrow at 9:00 AM from Home",
-            driver: "Raj Kumar",
-            vehicle: "DL 1C 1234",
+            trips: relevantTrips,
+            total: relevantTrips.length,
+            summary:
+              relevantTrips.length > 0
+                ? `You have ${relevantTrips.length} trip(s) ${input.timeframe}. First trip: ${relevantTrips[0].time} from ${relevantTrips[0].pickupLocation}`
+                : `No trips found for ${input.timeframe}`,
           };
         },
       }),
-      getScheduleInfo: createRorkTool({
-        description: "Get weekly schedule information",
+      getScheduleStatus: createRorkTool({
+        description:
+          "Get your weekly schedule status including approved and pending requests",
         zodSchema: z.object({
           week: z.string().describe("Week to query").optional(),
         }),
         execute() {
           return {
-            totalTrips: 10,
+            totalSlots: 10,
             approved: 8,
             pending: 2,
+            rejected: 0,
+            submissionDeadline: "Friday 5:00 PM",
+            message:
+              "You have 8 approved slots and 2 pending slots for the week. Submit changes by Friday 5:00 PM.",
+          };
+        },
+      }),
+      getCompletedTrips: createRorkTool({
+        description: "Get information about completed trips and statistics",
+        zodSchema: z.object({
+          timeframe: z.string().describe("Timeframe like 'this week', 'month'"),
+        }),
+        execute() {
+          return {
+            completedThisWeek: 6,
+            averageRating: 4.8,
+            totalTripsCompleted: 45,
+            message:
+              "Great job! You completed 6 trips this week with an average rating of 4.8/5.",
+          };
+        },
+      }),
+      requestScheduleChange: createRorkTool({
+        description: "Request a change to your schedule",
+        zodSchema: z.object({
+          date: z.string().describe("Date of the change"),
+          type: z.enum(["address", "time"]).describe("Type of change"),
+          oldValue: z.string().describe("Current value"),
+          newValue: z.string().describe("Desired value"),
+        }),
+        execute(input) {
+          return {
+            success: true,
+            requestId: `CHG-${Date.now()}`,
+            message: `Your request to change ${input.type} on ${input.date} has been submitted for approval.`,
           };
         },
       }),
@@ -63,7 +153,15 @@ export default function AssistantScreen() {
 
     const userMessage = input;
     setInput("");
-    await sendMessage(userMessage);
+    setIsLoading(true);
+
+    try {
+      await sendMessage(userMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const suggestedQueries = [
@@ -163,8 +261,29 @@ export default function AssistantScreen() {
                             color={Colors.light.primary}
                           />
                           <Text style={styles.toolText}>
-                            Fetching {part.toolName}...
+                            {part.toolName
+                              .replace(/([A-Z])/g, " $1")
+                              .toLowerCase()}
+                            ...
                           </Text>
+                        </View>
+                      );
+                    }
+
+                    if (part.state === "result") {
+                      return (
+                        <View key={`${m.id}-${i}`} style={styles.toolResult}>
+                          <Text style={styles.toolResultTitle}>
+                            {part.toolName
+                              .replace(/([A-Z])/g, " $1")
+                              .toLowerCase()
+                              .trim()}
+                          </Text>
+                          {typeof part.result === "object" && (
+                            <Text style={styles.toolResultText}>
+                              {JSON.stringify(part.result, null, 2)}
+                            </Text>
+                          )}
                         </View>
                       );
                     }
@@ -339,6 +458,30 @@ const styles = StyleSheet.create({
   toolText: {
     fontSize: 12,
     color: Colors.light.textSecondary,
+  },
+  toolResult: {
+    alignSelf: "flex-start",
+    maxWidth: "85%",
+    backgroundColor: Colors.light.cardBackground,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.light.success,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  toolResultTitle: {
+    fontSize: 11,
+    fontWeight: "600" as const,
+    color: Colors.light.success,
+    textTransform: "uppercase" as const,
+  },
+  toolResultText: {
+    fontSize: 12,
+    color: Colors.light.text,
+    lineHeight: 16,
   },
   inputContainer: {
     flexDirection: "row",

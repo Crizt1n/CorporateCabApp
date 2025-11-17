@@ -17,42 +17,57 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [loading, setLoading] = useState<boolean>(true);
   const [initializing, setInitializing] = useState<boolean>(true);
 
-  // Prevent profile from loading twice
+  // Prevent profile from loading twice and cleanup on unmount
   const isLoadingProfile = useRef(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     console.log("Setting up auth state listener");
+    isMountedRef.current = true;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log("Auth state changed:", firebaseUser?.email);
+
+      if (!isMountedRef.current) return;
 
       setUser(firebaseUser);
 
       if (firebaseUser && !isLoadingProfile.current) {
         isLoadingProfile.current = true;
-        await loadUserProfile(firebaseUser.uid);
+        await loadUserProfile(firebaseUser.uid, firebaseUser);
         isLoadingProfile.current = false;
       } else {
-        setUserProfile(null);
+        if (isMountedRef.current) {
+          setUserProfile(null);
+        }
       }
 
-      setLoading(false);
-      setInitializing(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setInitializing(false);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      isMountedRef.current = false;
+      unsubscribe();
+    };
   }, []);
 
   // ---- Loads the Firestore user profile ----
-  const loadUserProfile = async (uid: string) => {
+  const loadUserProfile = async (uid: string, firebaseUser?: FirebaseUser | null) => {
+    if (!isMountedRef.current) return;
+
     try {
       console.log("Loading user profile for:", uid);
       const userRef = doc(db, "users", uid);
       const userDoc = await getDoc(userRef);
 
+      if (!isMountedRef.current) return;
+
       if (userDoc.exists()) {
         const data = userDoc.data();
-        setUserProfile({
+        const profileData: UserProfile = {
           uid,
           email: data.email,
           name: data.name,
@@ -62,14 +77,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           hasCompletedOnboarding: data.hasCompletedOnboarding || false,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
-        });
+        };
+
+        if (isMountedRef.current) {
+          setUserProfile(profileData);
+        }
         console.log("User profile loaded:", data.role);
       } else {
         console.log("User profile not found, creating...");
 
         // ⚡ CREATE A NEW PROFILE AUTOMATICALLY
         const newProfile = {
-          email: user?.email || "",
+          email: firebaseUser?.email || "",
           name: "",
           phone: "",
           role: "employee",
@@ -81,19 +100,27 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
         await setDoc(userRef, newProfile);
 
+        if (!isMountedRef.current) return;
+
         // Load again after creating
-        setUserProfile({ uid, ...newProfile });
+        if (isMountedRef.current) {
+          setUserProfile({ uid, ...newProfile });
+        }
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
-      setUserProfile(null);
+      if (isMountedRef.current) {
+        setUserProfile(null);
+      }
     }
   };
 
   // ---- Login ----
   const signIn = useCallback(async (email: string, password: string) => {
     console.log("Signing in user:", email);
-    setLoading(true);
+    if (isMountedRef.current) {
+      setLoading(true);
+    }
 
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -102,7 +129,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.error("Sign in error:", error);
       throw error;
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -110,7 +139,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const signUp = useCallback(
     async (email: string, password: string, role: UserRole = "employee") => {
       console.log("Signing up user:", email);
-      setLoading(true);
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
 
       try {
         const result = await createUserWithEmailAndPassword(
@@ -137,7 +168,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         console.error("Sign up error:", error);
         throw error;
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     },
     []
@@ -148,8 +181,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       console.log("Signing out user");
       await firebaseSignOut(auth);
-      setUser(null);
-      setUserProfile(null);
+      if (isMountedRef.current) {
+        setUser(null);
+        setUserProfile(null);
+      }
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
@@ -160,6 +195,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>) => {
       if (!user) throw new Error("No user logged in");
+      if (!isMountedRef.current) return;
 
       console.log("Updating user profile:", updates);
 
@@ -169,7 +205,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           updatedAt: new Date(),
         });
 
-        await loadUserProfile(user.uid);
+        await loadUserProfile(user.uid, user);
       } catch (error) {
         console.error("Update profile error:", error);
         throw error;
