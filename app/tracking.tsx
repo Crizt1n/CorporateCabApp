@@ -1,41 +1,23 @@
-import React, { useState, useEffect, useRef, Platform } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  ActivityIndicator,
   ScrollView,
-  Image,
+  Platform,
 } from "react-native";
-import { Stack, useRouter, useLocalSearchParams } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ChevronLeft,
   Phone,
-  Navigation,
   Clock,
   AlertCircle,
   Map,
 } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
-
-// Conditionally import MapView only on native platforms
-let MapView: any = null;
-let Marker: any = null;
-let Polyline: any = null;
-
-if (Platform.OS !== "web") {
-  try {
-    const maps = require("react-native-maps");
-    MapView = maps.default;
-    Marker = maps.Marker;
-    Polyline = maps.Polyline;
-  } catch (e) {
-    console.warn("react-native-maps not available");
-  }
-}
 
 // Mock trip data for testing
 const mockTrip: Trip = {
@@ -76,40 +58,16 @@ const mockTrip: Trip = {
   },
 };
 
-const generateRoutePath = (
-  start: { latitude: number; longitude: number },
-  end: { latitude: number; longitude: number },
-  steps: number = 20
-) => {
-  const path = [];
-  for (let i = 0; i <= steps; i++) {
-    const progress = i / steps;
-    path.push({
-      latitude: start.latitude + (end.latitude - start.latitude) * progress,
-      longitude:
-        start.longitude + (end.longitude - start.longitude) * progress,
-    });
-  }
-  return path;
-};
-
 export default function TrackingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const mapRef = useRef<MapView>(null);
-
   const trip = mockTrip;
+
   const [currentLocation, setCurrentLocation] = useState(
     trip.currentLocation || trip.pickupLocation.coordinates
   );
   const [eta, setEta] = useState(8);
   const [isSimulating, setIsSimulating] = useState(true);
-
-  const routePath = generateRoutePath(
-    trip.pickupLocation.coordinates,
-    trip.dropLocation.coordinates
-  );
 
   // Simulate vehicle movement
   useEffect(() => {
@@ -150,15 +108,6 @@ export default function TrackingScreen() {
     return () => clearInterval(interval);
   }, [isSimulating]);
 
-  // Auto-zoom to fit both markers
-  useEffect(() => {
-    if (mapRef.current) {
-      setTimeout(() => {
-        mapRef.current?.fitToElements(true);
-      }, 500);
-    }
-  }, []);
-
   const handleCall = () => {
     alert(`Calling ${trip.driverName}...`);
   };
@@ -175,116 +124,60 @@ export default function TrackingScreen() {
         }}
       />
 
-      {Platform.OS !== "web" && MapView ? (
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={{
-            latitude: (trip.pickupLocation.coordinates.latitude +
-              trip.dropLocation.coordinates.latitude) /
-              2,
-            longitude: (trip.pickupLocation.coordinates.longitude +
-              trip.dropLocation.coordinates.longitude) /
-              2,
-            latitudeDelta: 0.15,
-            longitudeDelta: 0.15,
-          }}
-        >
-          {/* Pickup location marker */}
-          <Marker
-            coordinate={trip.pickupLocation.coordinates}
-            title="Pickup"
-            description={trip.pickupLocation.formattedAddress}
-            pinColor={Colors.light.success}
-          />
+      {/* Map Visualization */}
+      <View style={styles.mapFallback}>
+        <View style={styles.mapPlaceholder}>
+          <Map size={48} color={Colors.light.primary} />
+          <Text style={styles.mapPlaceholderText}>Live Map Tracking</Text>
+          <Text style={styles.mapPlaceholderSubtext}>
+            {trip.driverName} is {Math.ceil(eta)} minutes away
+          </Text>
 
-          {/* Drop location marker */}
-          <Marker
-            coordinate={trip.dropLocation.coordinates}
-            title="Drop"
-            description={trip.dropLocation.formattedAddress}
-            pinColor={Colors.light.error}
-          />
-
-          {/* Current vehicle location marker */}
-          {currentLocation && (
-            <Marker
-              coordinate={currentLocation}
-              title={trip.vehicleNumber}
-              description={trip.driverName}
-              pinColor={Colors.light.primary}
-            />
-          )}
-
-          {/* Route polyline */}
-          <Polyline
-            coordinates={routePath}
-            strokeColor={Colors.light.primary}
-            strokeWidth={3}
-          />
-        </MapView>
-      ) : (
-        <View style={styles.mapFallback}>
-          <View style={styles.mapPlaceholder}>
-            <Map size={48} color={Colors.light.primary} />
-            <Text style={styles.mapPlaceholderText}>
-              Live Map Tracking
-            </Text>
-            <Text style={styles.mapPlaceholderSubtext}>
-              {trip.driverName} is {Math.ceil(eta)} minutes away
-            </Text>
-
-            <View style={styles.routeInfo}>
-              <View style={styles.routePoint}>
-                <View style={styles.routePointDot} />
-                <View>
-                  <Text style={styles.routePointLabel}>From</Text>
-                  <Text style={styles.routePointAddress} numberOfLines={1}>
-                    {trip.pickupLocation.city}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.routeLine} />
-
-              <View style={styles.routePoint}>
-                <View
-                  style={[
-                    styles.routePointDot,
-                    { backgroundColor: Colors.light.error },
-                  ]}
-                />
-                <View>
-                  <Text style={styles.routePointLabel}>To</Text>
-                  <Text style={styles.routePointAddress} numberOfLines={1}>
-                    {trip.dropLocation.city}
-                  </Text>
-                </View>
+          <View style={styles.routeInfo}>
+            <View style={styles.routePoint}>
+              <View style={styles.routePointDot} />
+              <View>
+                <Text style={styles.routePointLabel}>From</Text>
+                <Text style={styles.routePointAddress} numberOfLines={1}>
+                  {trip.pickupLocation.city}
+                </Text>
               </View>
             </View>
 
-            <View style={styles.mapSimulation}>
+            <View style={styles.routeLine} />
+
+            <View style={styles.routePoint}>
               <View
                 style={[
-                  styles.vehicleSimulator,
-                  { left: `${(1 - eta / 8) * 80}%` },
+                  styles.routePointDot,
+                  { backgroundColor: Colors.light.error },
                 ]}
-              >
-                <Text style={styles.vehicleEmoji}>🚗</Text>
+              />
+              <View>
+                <Text style={styles.routePointLabel}>To</Text>
+                <Text style={styles.routePointAddress} numberOfLines={1}>
+                  {trip.dropLocation.city}
+                </Text>
               </View>
             </View>
           </View>
+
+          <View style={styles.mapSimulation}>
+            <View
+              style={[
+                styles.vehicleSimulator,
+                { left: `${(1 - eta / 8) * 80}%` },
+              ]}
+            >
+              <Text style={styles.vehicleEmoji}>🚗</Text>
+            </View>
+          </View>
         </View>
-      )}
+      </View>
 
       {/* Header */}
-      <View
-        style={[styles.header, { paddingTop: insets.top + 12, zIndex: 10 }]}
-      >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={24} color={Colors.light.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Live Tracking</Text>
@@ -292,11 +185,10 @@ export default function TrackingScreen() {
       </View>
 
       {/* Bottom Sheet */}
-      <View style={[styles.bottomSheet, { paddingBottom: insets.bottom || 16 }]}>
-        <ScrollView
-          style={styles.bottomSheetContent}
-          scrollEnabled={false}
-        >
+      <View
+        style={[styles.bottomSheet, { paddingBottom: insets.bottom || 16 }]}
+      >
+        <ScrollView style={styles.bottomSheetContent} scrollEnabled={false}>
           {/* Trip Info */}
           <View style={styles.tripInfo}>
             <View style={styles.driverCard}>
@@ -338,7 +230,10 @@ export default function TrackingScreen() {
               <View style={styles.locationItem}>
                 <View style={styles.locationDot}>
                   <View
-                    style={[styles.dot, { backgroundColor: Colors.light.success }]}
+                    style={[
+                      styles.dot,
+                      { backgroundColor: Colors.light.success },
+                    ]}
                   />
                 </View>
                 <View style={styles.locationText}>
@@ -354,7 +249,10 @@ export default function TrackingScreen() {
               <View style={styles.locationItem}>
                 <View style={styles.locationDot}>
                   <View
-                    style={[styles.dot, { backgroundColor: Colors.light.error }]}
+                    style={[
+                      styles.dot,
+                      { backgroundColor: Colors.light.error },
+                    ]}
                   />
                 </View>
                 <View style={styles.locationText}>
@@ -369,18 +267,12 @@ export default function TrackingScreen() {
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.callButton}
-              onPress={handleCall}
-            >
+            <TouchableOpacity style={styles.callButton} onPress={handleCall}>
               <Phone size={20} color="#FFFFFF" />
               <Text style={styles.callButtonText}>Call Driver</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.sosButton}
-              onPress={handleSOS}
-            >
+            <TouchableOpacity style={styles.sosButton} onPress={handleSOS}>
               <AlertCircle size={20} color={Colors.light.error} />
               <Text style={styles.sosButtonText}>Emergency SOS</Text>
             </TouchableOpacity>
@@ -388,9 +280,7 @@ export default function TrackingScreen() {
 
           {/* Safety Info */}
           <View style={styles.safetyInfo}>
-            <Text style={styles.safetyTitle}>
-              💡 Share your real-time location
-            </Text>
+            <Text style={styles.safetyTitle}>💡 Share your real-time location</Text>
             <Text style={styles.safetyText}>
               Send live tracking link to a trusted contact for added safety
             </Text>
@@ -406,14 +296,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  map: {
-    flex: 1,
-  },
   mapFallback: {
     flex: 1,
     backgroundColor: Colors.light.cardBackground,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: 80,
   },
   mapPlaceholder: {
     alignItems: "center",
