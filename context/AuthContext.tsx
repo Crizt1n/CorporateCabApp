@@ -17,14 +17,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [loading, setLoading] = useState<boolean>(true);
   const [initializing, setInitializing] = useState<boolean>(true);
 
-  // Prevent profile from loading twice
+  // Prevent profile from loading twice and cleanup on unmount
   const isLoadingProfile = useRef(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     console.log("Setting up auth state listener");
+    isMountedRef.current = true;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log("Auth state changed:", firebaseUser?.email);
+
+      if (!isMountedRef.current) return;
 
       setUser(firebaseUser);
 
@@ -36,11 +40,16 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         setUserProfile(null);
       }
 
-      setLoading(false);
-      setInitializing(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setInitializing(false);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      isMountedRef.current = false;
+      unsubscribe();
+    };
   }, []);
 
   // ---- Loads the Firestore user profile ----
