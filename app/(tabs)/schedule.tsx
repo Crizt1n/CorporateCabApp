@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Modal,
+  Alert,
 } from "react-native";
 import { Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +17,7 @@ import {
   Home,
   Building,
   Plus,
+  X,
 } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import type { DayOfWeek, LocationType } from "@/types";
@@ -39,13 +42,49 @@ export default function ScheduleScreen() {
   const insets = useSafeAreaInsets();
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [editingDay, setEditingDay] = useState<DayOfWeek | null>(null);
+  const [pickupTime, setPickupTime] = useState("");
+  const [dropTime, setDropTime] = useState("");
+  const [pickupLocation, setPickupLocation] = useState<LocationType>("home");
+  const [dropLocation, setDropLocation] = useState<LocationType>("office");
 
   const handleAddSlot = (day: DayOfWeek) => {
     setEditingDay(day);
+    setPickupTime("");
+    setDropTime("");
+    setPickupLocation("home");
+    setDropLocation("office");
+  };
+
+  const handleSaveSlot = () => {
+    if (!editingDay || !pickupTime || !dropTime) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    const newSlot: TimeSlot = {
+      day: editingDay,
+      pickupTime,
+      dropTime,
+      pickupLocation,
+      dropLocation,
+    };
+
+    setSlots([...slots, newSlot]);
+    setEditingDay(null);
+    Alert.alert("Success", `Slot added for ${editingDay}`);
+  };
+
+  const handleRemoveSlot = (index: number) => {
+    setSlots(slots.filter((_, i) => i !== index));
   };
 
   const handleSubmit = () => {
-    alert("Schedule submitted for admin approval!");
+    if (slots.length === 0) {
+      Alert.alert("Error", "Please add at least one slot");
+      return;
+    }
+    Alert.alert("Success", "Schedule submitted for admin approval!");
+    setSlots([]);
   };
 
   return (
