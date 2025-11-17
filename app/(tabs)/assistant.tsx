@@ -153,7 +153,15 @@ export default function AssistantScreen() {
 
     const userMessage = input;
     setInput("");
-    await sendMessage(userMessage);
+    setIsLoading(true);
+
+    try {
+      await sendMessage(userMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const suggestedQueries = [
