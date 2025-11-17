@@ -195,6 +195,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>) => {
       if (!user) throw new Error("No user logged in");
+      if (!isMountedRef.current) return;
 
       console.log("Updating user profile:", updates);
 
@@ -204,7 +205,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           updatedAt: new Date(),
         });
 
-        await loadUserProfile(user.uid);
+        await loadUserProfile(user.uid, user);
       } catch (error) {
         console.error("Update profile error:", error);
         throw error;
