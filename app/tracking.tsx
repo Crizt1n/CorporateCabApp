@@ -409,6 +409,80 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  mapFallback: {
+    flex: 1,
+    backgroundColor: Colors.light.cardBackground,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  mapPlaceholder: {
+    alignItems: "center",
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  mapPlaceholderText: {
+    fontSize: 18,
+    fontWeight: "600" as const,
+    color: Colors.light.text,
+  },
+  mapPlaceholderSubtext: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+  },
+  routeInfo: {
+    width: "100%",
+    backgroundColor: Colors.light.background,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  routePoint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  routePointDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.light.success,
+  },
+  routePointLabel: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    fontWeight: "600" as const,
+  },
+  routePointAddress: {
+    fontSize: 14,
+    color: Colors.light.text,
+    fontWeight: "500" as const,
+    marginTop: 2,
+  },
+  routeLine: {
+    marginLeft: 6,
+    width: 2,
+    height: 24,
+    backgroundColor: Colors.light.border,
+  },
+  mapSimulation: {
+    width: "100%",
+    height: 80,
+    backgroundColor: Colors.light.background,
+    borderRadius: 12,
+    position: "relative",
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  vehicleSimulator: {
+    position: "absolute",
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  vehicleEmoji: {
+    fontSize: 28,
+  },
   header: {
     position: "absolute",
     top: 0,
