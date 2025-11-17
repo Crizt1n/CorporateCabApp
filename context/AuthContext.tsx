@@ -181,8 +181,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       console.log("Signing out user");
       await firebaseSignOut(auth);
-      setUser(null);
-      setUserProfile(null);
+      if (isMountedRef.current) {
+        setUser(null);
+        setUserProfile(null);
+      }
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
