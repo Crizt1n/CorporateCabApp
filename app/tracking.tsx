@@ -175,53 +175,107 @@ export default function TrackingScreen() {
         }}
       />
 
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={{
-          latitude: (trip.pickupLocation.coordinates.latitude +
-            trip.dropLocation.coordinates.latitude) /
-            2,
-          longitude: (trip.pickupLocation.coordinates.longitude +
-            trip.dropLocation.coordinates.longitude) /
-            2,
-          latitudeDelta: 0.15,
-          longitudeDelta: 0.15,
-        }}
-      >
-        {/* Pickup location marker */}
-        <Marker
-          coordinate={trip.pickupLocation.coordinates}
-          title="Pickup"
-          description={trip.pickupLocation.formattedAddress}
-          pinColor={Colors.light.success}
-        />
-
-        {/* Drop location marker */}
-        <Marker
-          coordinate={trip.dropLocation.coordinates}
-          title="Drop"
-          description={trip.dropLocation.formattedAddress}
-          pinColor={Colors.light.error}
-        />
-
-        {/* Current vehicle location marker */}
-        {currentLocation && (
+      {Platform.OS !== "web" && MapView ? (
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={{
+            latitude: (trip.pickupLocation.coordinates.latitude +
+              trip.dropLocation.coordinates.latitude) /
+              2,
+            longitude: (trip.pickupLocation.coordinates.longitude +
+              trip.dropLocation.coordinates.longitude) /
+              2,
+            latitudeDelta: 0.15,
+            longitudeDelta: 0.15,
+          }}
+        >
+          {/* Pickup location marker */}
           <Marker
-            coordinate={currentLocation}
-            title={trip.vehicleNumber}
-            description={trip.driverName}
-            pinColor={Colors.light.primary}
+            coordinate={trip.pickupLocation.coordinates}
+            title="Pickup"
+            description={trip.pickupLocation.formattedAddress}
+            pinColor={Colors.light.success}
           />
-        )}
 
-        {/* Route polyline */}
-        <Polyline
-          coordinates={routePath}
-          strokeColor={Colors.light.primary}
-          strokeWidth={3}
-        />
-      </MapView>
+          {/* Drop location marker */}
+          <Marker
+            coordinate={trip.dropLocation.coordinates}
+            title="Drop"
+            description={trip.dropLocation.formattedAddress}
+            pinColor={Colors.light.error}
+          />
+
+          {/* Current vehicle location marker */}
+          {currentLocation && (
+            <Marker
+              coordinate={currentLocation}
+              title={trip.vehicleNumber}
+              description={trip.driverName}
+              pinColor={Colors.light.primary}
+            />
+          )}
+
+          {/* Route polyline */}
+          <Polyline
+            coordinates={routePath}
+            strokeColor={Colors.light.primary}
+            strokeWidth={3}
+          />
+        </MapView>
+      ) : (
+        <View style={styles.mapFallback}>
+          <View style={styles.mapPlaceholder}>
+            <Map size={48} color={Colors.light.primary} />
+            <Text style={styles.mapPlaceholderText}>
+              Live Map Tracking
+            </Text>
+            <Text style={styles.mapPlaceholderSubtext}>
+              {trip.driverName} is {Math.ceil(eta)} minutes away
+            </Text>
+
+            <View style={styles.routeInfo}>
+              <View style={styles.routePoint}>
+                <View style={styles.routePointDot} />
+                <View>
+                  <Text style={styles.routePointLabel}>From</Text>
+                  <Text style={styles.routePointAddress} numberOfLines={1}>
+                    {trip.pickupLocation.city}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.routeLine} />
+
+              <View style={styles.routePoint}>
+                <View
+                  style={[
+                    styles.routePointDot,
+                    { backgroundColor: Colors.light.error },
+                  ]}
+                />
+                <View>
+                  <Text style={styles.routePointLabel}>To</Text>
+                  <Text style={styles.routePointAddress} numberOfLines={1}>
+                    {trip.dropLocation.city}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.mapSimulation}>
+              <View
+                style={[
+                  styles.vehicleSimulator,
+                  { left: `${(1 - eta / 8) * 80}%` },
+                ]}
+              >
+                <Text style={styles.vehicleEmoji}>🚗</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Header */}
       <View
