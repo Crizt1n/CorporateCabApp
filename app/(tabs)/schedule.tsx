@@ -571,12 +571,21 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
   },
   slotsContainer: {
-    gap: 8,
+    gap: 12,
   },
   slotItem: {
     flexDirection: "row",
-    gap: 16,
-    paddingVertical: 8,
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.light.background,
+    borderRadius: 10,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  slotDetails: {
+    flex: 1,
+    gap: 6,
   },
   slotTime: {
     flexDirection: "row",
@@ -591,6 +600,10 @@ const styles = StyleSheet.create({
   slotText: {
     fontSize: 14,
     color: Colors.light.textSecondary,
+    fontWeight: "500" as const,
+  },
+  removeSlotButton: {
+    padding: 8,
   },
   emptySlot: {
     fontSize: 14,
