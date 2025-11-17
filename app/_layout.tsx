@@ -17,25 +17,15 @@ function RootLayoutNav() {
   useEffect(() => {
     if (initializing) return;
 
-    console.log("Navigation check:", {
-      hasUser: !!user,
-      hasProfile: !!userProfile,
-      hasCompletedOnboarding: userProfile?.hasCompletedOnboarding,
-      currentSegments: segments,
-    });
-
     const inAuthGroup = segments[0] === "(tabs)";
     const onLogin = segments[0] === "login";
     const onOnboarding = segments[0] === "onboarding";
 
     if (!user && !onLogin) {
-      console.log("Redirecting to login");
       router.replace("/login");
     } else if (user && !userProfile?.hasCompletedOnboarding && !onOnboarding) {
-      console.log("Redirecting to onboarding");
       router.replace("/onboarding");
     } else if (user && userProfile?.hasCompletedOnboarding && !inAuthGroup) {
-      console.log("Redirecting to app");
       router.replace("/(tabs)");
     }
   }, [user, userProfile, initializing, segments]);
@@ -45,6 +35,10 @@ function RootLayoutNav() {
       SplashScreen.hideAsync();
     }
   }, [initializing]);
+
+  if (initializing) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
@@ -58,11 +52,11 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
           <RootLayoutNav />
-        </GestureHandlerRootView>
-      </AuthProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>
   );
 }
