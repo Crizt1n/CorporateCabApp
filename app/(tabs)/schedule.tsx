@@ -91,6 +91,181 @@ export default function ScheduleScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
+      <Modal
+        visible={editingDay !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditingDay(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { paddingTop: insets.top + 16 }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Add Slot for{" "}
+                {editingDay?.charAt(0).toUpperCase() +
+                  editingDay?.slice(1)}
+              </Text>
+              <TouchableOpacity onPress={() => setEditingDay(null)}>
+                <X size={24} color={Colors.light.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.modalBody}
+              contentContainerStyle={styles.modalFormContent}
+            >
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Pickup Time (HH:MM)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="09:00"
+                  placeholderTextColor={Colors.light.placeholder}
+                  value={pickupTime}
+                  onChangeText={setPickupTime}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Drop Time (HH:MM)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="17:00"
+                  placeholderTextColor={Colors.light.placeholder}
+                  value={dropTime}
+                  onChangeText={setDropTime}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Pickup Location</Text>
+                <View style={styles.locationButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      pickupLocation === "home" && styles.locationButtonActive,
+                    ]}
+                    onPress={() => setPickupLocation("home")}
+                  >
+                    <Home
+                      size={16}
+                      color={
+                        pickupLocation === "home"
+                          ? "#FFFFFF"
+                          : Colors.light.text
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.locationButtonText,
+                        pickupLocation === "home" &&
+                          styles.locationButtonTextActive,
+                      ]}
+                    >
+                      Home
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      pickupLocation === "office" &&
+                        styles.locationButtonActive,
+                    ]}
+                    onPress={() => setPickupLocation("office")}
+                  >
+                    <Building
+                      size={16}
+                      color={
+                        pickupLocation === "office"
+                          ? "#FFFFFF"
+                          : Colors.light.text
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.locationButtonText,
+                        pickupLocation === "office" &&
+                          styles.locationButtonTextActive,
+                      ]}
+                    >
+                      Office
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Drop Location</Text>
+                <View style={styles.locationButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      dropLocation === "home" && styles.locationButtonActive,
+                    ]}
+                    onPress={() => setDropLocation("home")}
+                  >
+                    <Home
+                      size={16}
+                      color={
+                        dropLocation === "home" ? "#FFFFFF" : Colors.light.text
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.locationButtonText,
+                        dropLocation === "home" &&
+                          styles.locationButtonTextActive,
+                      ]}
+                    >
+                      Home
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      dropLocation === "office" && styles.locationButtonActive,
+                    ]}
+                    onPress={() => setDropLocation("office")}
+                  >
+                    <Building
+                      size={16}
+                      color={
+                        dropLocation === "office"
+                          ? "#FFFFFF"
+                          : Colors.light.text
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.locationButtonText,
+                        dropLocation === "office" &&
+                          styles.locationButtonTextActive,
+                      ]}
+                    >
+                      Office
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setEditingDay(null)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveSlot}
+              >
+                <Text style={styles.saveButtonText}>Save Slot</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.title}>Weekly Schedule</Text>
         <Text style={styles.subtitle}>
