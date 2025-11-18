@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import {
   StyleSheet,
   Text,
@@ -23,11 +23,16 @@ let MapView: any = null;
 let Marker: any = null;
 let Polyline: any = null;
 
+// Only import maps on native platforms
 if (Platform.OS !== "web") {
-  const mapModule = require("react-native-maps");
-  MapView = mapModule.default;
-  Marker = mapModule.Marker;
-  Polyline = mapModule.Polyline;
+  try {
+    const maps = require("react-native-maps");
+    MapView = maps.default;
+    Marker = maps.Marker;
+    Polyline = maps.Polyline;
+  } catch (e) {
+    // Maps not available
+  }
 }
 
 // Mock trip data for testing
