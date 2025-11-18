@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, Platform } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { StyleSheet, View, Text, Platform } from "react-native";
 import { Map } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
