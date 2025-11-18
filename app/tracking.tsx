@@ -315,80 +315,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  mapFallback: {
+  map: {
     flex: 1,
-    backgroundColor: Colors.light.cardBackground,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 80,
-  },
-  mapPlaceholder: {
-    alignItems: "center",
-    gap: 16,
-    paddingHorizontal: 24,
-  },
-  mapPlaceholderText: {
-    fontSize: 18,
-    fontWeight: "600" as const,
-    color: Colors.light.text,
-  },
-  mapPlaceholderSubtext: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  routeInfo: {
     width: "100%",
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
   },
-  routePoint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  routePointDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.light.success,
-  },
-  routePointLabel: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    fontWeight: "600" as const,
-  },
-  routePointAddress: {
-    fontSize: 14,
-    color: Colors.light.text,
-    fontWeight: "500" as const,
-    marginTop: 2,
-  },
-  routeLine: {
-    marginLeft: 6,
-    width: 2,
-    height: 24,
-    backgroundColor: Colors.light.border,
-  },
-  mapSimulation: {
-    width: "100%",
-    height: 80,
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    position: "relative",
-    overflow: "hidden",
-    justifyContent: "center",
-  },
-  vehicleSimulator: {
-    position: "absolute",
+  markerIcon: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
   },
-  vehicleEmoji: {
-    fontSize: 28,
+  markerEmoji: {
+    fontSize: 24,
   },
   header: {
     position: "absolute",
