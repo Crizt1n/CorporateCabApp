@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Map,
 } from "lucide-react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
 
