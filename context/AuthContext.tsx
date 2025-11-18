@@ -24,33 +24,63 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   useEffect(() => {
     console.log("Setting up auth state listener");
     isMountedRef.current = true;
+    let unsubscribe: (() => void) | null = null;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("Auth state changed:", firebaseUser?.email);
+    try {
+      unsubscribe = onAuthStateChanged(
+        auth,
+        async (firebaseUser) => {
+          try {
+            console.log("Auth state changed:", firebaseUser?.email);
 
-      if (!isMountedRef.current) return;
+            if (!isMountedRef.current) return;
 
-      setUser(firebaseUser);
+            setUser(firebaseUser);
 
-      if (firebaseUser && !isLoadingProfile.current) {
-        isLoadingProfile.current = true;
-        await loadUserProfile(firebaseUser.uid, firebaseUser);
-        isLoadingProfile.current = false;
-      } else {
-        if (isMountedRef.current) {
-          setUserProfile(null);
+            if (firebaseUser && !isLoadingProfile.current) {
+              isLoadingProfile.current = true;
+              await loadUserProfile(firebaseUser.uid, firebaseUser);
+              isLoadingProfile.current = false;
+            } else {
+              if (isMountedRef.current) {
+                setUserProfile(null);
+              }
+            }
+
+            if (isMountedRef.current) {
+              setLoading(false);
+              setInitializing(false);
+            }
+          } catch (error) {
+            console.error("Error in auth state change handler:", error);
+            if (isMountedRef.current) {
+              setLoading(false);
+              setInitializing(false);
+            }
+          }
+        },
+        (error) => {
+          // Error callback for auth state listener
+          console.error("Auth state listener error:", error);
+          if (isMountedRef.current) {
+            setLoading(false);
+            setInitializing(false);
+          }
         }
-      }
-
+      );
+    } catch (error) {
+      console.error("Error setting up auth listener:", error);
       if (isMountedRef.current) {
         setLoading(false);
         setInitializing(false);
       }
-    });
+    }
 
     return () => {
       isMountedRef.current = false;
-      unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, []);
 
