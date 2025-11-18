@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Platform,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,15 +13,10 @@ import {
   Phone,
   Clock,
   AlertCircle,
-  Map,
 } from "lucide-react-native";
+import { TrackingMap } from "./TrackingMap";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
-
-// Import map component based on platform
-const MapComponent = Platform.OS === "web"
-  ? require("./MapComponent.web").MapComponent
-  : require("./MapComponent.native").MapComponent;
 
 // Mock trip data for testing
 const mockTrip: Trip = {
