@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Platform } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,10 +13,15 @@ import {
   Phone,
   Clock,
   AlertCircle,
+  Map,
 } from "lucide-react-native";
-import { MapComponent } from "./MapComponent";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
+
+// Import map component based on platform
+const MapComponent = Platform.OS === "web"
+  ? require("./MapComponent.web").MapComponent
+  : require("./MapComponent.native").MapComponent;
 
 // Mock trip data for testing
 const mockTrip: Trip = {
