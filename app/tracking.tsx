@@ -126,11 +126,11 @@ export default function TrackingScreen() {
       />
 
       {/* Google Maps with Web Fallback */}
-      <MapComponent
-        ref={mapRef}
+      <TrackingMap
         trip={trip}
         currentLocation={currentLocation}
         eta={eta}
+        mapRef={mapRef}
       />
 
       {/* Header */}
