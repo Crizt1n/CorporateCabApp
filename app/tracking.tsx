@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   ScrollView,
-  Platform,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,8 +13,8 @@ import {
   Phone,
   Clock,
   AlertCircle,
-  Map,
 } from "lucide-react-native";
+import { TrackingMap } from "./TrackingMap";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
 
@@ -62,6 +61,7 @@ export default function TrackingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const trip = mockTrip;
+  const mapRef = useRef<MapView>(null);
 
   const [currentLocation, setCurrentLocation] = useState(
     trip.currentLocation || trip.pickupLocation.coordinates
@@ -108,6 +108,7 @@ export default function TrackingScreen() {
     return () => clearInterval(interval);
   }, [isSimulating]);
 
+
   const handleCall = () => {
     alert(`Calling ${trip.driverName}...`);
   };
@@ -124,56 +125,13 @@ export default function TrackingScreen() {
         }}
       />
 
-      {/* Map Visualization */}
-      <View style={styles.mapFallback}>
-        <View style={styles.mapPlaceholder}>
-          <Map size={48} color={Colors.light.primary} />
-          <Text style={styles.mapPlaceholderText}>Live Map Tracking</Text>
-          <Text style={styles.mapPlaceholderSubtext}>
-            {trip.driverName} is {Math.ceil(eta)} minutes away
-          </Text>
-
-          <View style={styles.routeInfo}>
-            <View style={styles.routePoint}>
-              <View style={styles.routePointDot} />
-              <View>
-                <Text style={styles.routePointLabel}>From</Text>
-                <Text style={styles.routePointAddress} numberOfLines={1}>
-                  {trip.pickupLocation.city}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.routeLine} />
-
-            <View style={styles.routePoint}>
-              <View
-                style={[
-                  styles.routePointDot,
-                  { backgroundColor: Colors.light.error },
-                ]}
-              />
-              <View>
-                <Text style={styles.routePointLabel}>To</Text>
-                <Text style={styles.routePointAddress} numberOfLines={1}>
-                  {trip.dropLocation.city}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.mapSimulation}>
-            <View
-              style={[
-                styles.vehicleSimulator,
-                { left: `${(1 - eta / 8) * 80}%` },
-              ]}
-            >
-              <Text style={styles.vehicleEmoji}>🚗</Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      {/* Google Maps with Web Fallback */}
+      <TrackingMap
+        trip={trip}
+        currentLocation={currentLocation}
+        eta={eta}
+        mapRef={mapRef}
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -296,90 +254,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  mapFallback: {
-    flex: 1,
-    backgroundColor: Colors.light.cardBackground,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 80,
-  },
-  mapPlaceholder: {
-    alignItems: "center",
-    gap: 16,
-    paddingHorizontal: 24,
-  },
-  mapPlaceholderText: {
-    fontSize: 18,
-    fontWeight: "600" as const,
-    color: Colors.light.text,
-  },
-  mapPlaceholderSubtext: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  routeInfo: {
-    width: "100%",
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-  },
-  routePoint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  routePointDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.light.success,
-  },
-  routePointLabel: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    fontWeight: "600" as const,
-  },
-  routePointAddress: {
-    fontSize: 14,
-    color: Colors.light.text,
-    fontWeight: "500" as const,
-    marginTop: 2,
-  },
-  routeLine: {
-    marginLeft: 6,
-    width: 2,
-    height: 24,
-    backgroundColor: Colors.light.border,
-  },
-  mapSimulation: {
-    width: "100%",
-    height: 80,
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    position: "relative",
-    overflow: "hidden",
-    justifyContent: "center",
-  },
-  vehicleSimulator: {
-    position: "absolute",
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  vehicleEmoji: {
-    fontSize: 28,
-  },
   header: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
+    zIndex: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingBottom: 12,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
@@ -403,36 +287,44 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 5,
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "45%",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "50%",
+    minHeight: "35%",
     borderTopWidth: 1,
     borderTopColor: Colors.light.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
   },
   bottomSheetContent: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   tripInfo: {
-    gap: 16,
+    gap: 12,
   },
   driverCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
   },
   driverName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600" as const,
     color: Colors.light.text,
   },
   vehicleNumber: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.light.textSecondary,
-    marginTop: 4,
+    marginTop: 3,
   },
   ratingBadge: {
     backgroundColor: Colors.light.warning + "20",
@@ -516,20 +408,22 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
+    marginVertical: 8,
   },
   callButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
     backgroundColor: Colors.light.primary,
-    paddingVertical: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
     borderRadius: 10,
   },
   callButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600" as const,
     color: "#FFFFFF",
   },
@@ -538,13 +432,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
     backgroundColor: Colors.light.error + "10",
-    paddingVertical: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
     borderRadius: 10,
   },
   sosButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600" as const,
     color: Colors.light.error,
   },
