@@ -27,7 +27,10 @@ export function TrackingMap({
   // Dynamically import maps only on native platforms at runtime
   if (Platform.OS !== "web") {
     try {
-      const mapsModule = require("react-native-maps");
+      // Use a dynamic require that the bundler can't statically analyze
+      const requireFunc = (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require) as any;
+      const moduleName = ["react", "-native", "-maps"].join("");
+      const mapsModule = requireFunc(moduleName);
       MapView = mapsModule.default;
       Marker = mapsModule.Marker;
       Polyline = mapsModule.Polyline;
