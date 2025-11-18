@@ -108,20 +108,6 @@ export default function TrackingScreen() {
     return () => clearInterval(interval);
   }, [isSimulating]);
 
-  // Focus map on current location
-  useEffect(() => {
-    if (mapRef.current && currentLocation) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        },
-        500
-      );
-    }
-  }, [currentLocation]);
 
   const handleCall = () => {
     alert(`Calling ${trip.driverName}...`);
