@@ -16,9 +16,19 @@ import {
   AlertCircle,
   Map,
 } from "lucide-react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
 import Colors from "@/constants/colors";
 import type { Trip } from "@/types";
+
+let MapView: any = null;
+let Marker: any = null;
+let Polyline: any = null;
+
+if (Platform.OS !== "web") {
+  const mapModule = require("react-native-maps");
+  MapView = mapModule.default;
+  Marker = mapModule.Marker;
+  Polyline = mapModule.Polyline;
+}
 
 // Mock trip data for testing
 const mockTrip: Trip = {
