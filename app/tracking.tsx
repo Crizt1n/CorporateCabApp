@@ -384,25 +384,25 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   tripInfo: {
-    gap: 16,
+    gap: 12,
   },
   driverCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
   },
   driverName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600" as const,
     color: Colors.light.text,
   },
   vehicleNumber: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.light.textSecondary,
-    marginTop: 4,
+    marginTop: 3,
   },
   ratingBadge: {
     backgroundColor: Colors.light.warning + "20",
