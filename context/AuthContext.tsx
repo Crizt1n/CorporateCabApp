@@ -91,7 +91,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           email: firebaseUser?.email || "",
           name: "",
           phone: "",
-          role: "employee",
+          role: "employee" as const,
           homeAddress: "",
           hasCompletedOnboarding: false,
           createdAt: new Date(),
@@ -108,6 +108,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         }
       }
     } catch (error) {
+      // Ignore abort errors that occur during cleanup
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Auth stream aborted during cleanup");
+        return;
+      }
       console.error("Error loading user profile:", error);
       if (isMountedRef.current) {
         setUserProfile(null);
